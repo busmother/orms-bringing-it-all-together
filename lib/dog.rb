@@ -59,20 +59,17 @@ class Dog
         new_from_db(search[0])
     end
 
-    def self.find_or_create_by(hash) 
-        binding.pry
+    def self.find_or_create_by(hash)
         sql = <<-SQL
         SELECT * FROM dogs
-        WHERE name = ?, breed = ?
+        WHERE name = ? AND breed = ?
         SQL
-        DB[:conn].execute
-        dog = self.find_by_name(hash[:name])
-        if dog.name == nil
-            dog.name = hash[:name]
-            dog.breed = hash[:breed]
+        dog = DB[:conn].execute(sql, hash[:name], hash[:breed])
+        if dog == []
+            dog = Dog.new(name:hash[:name],breed:hash[:breed])
             dog.save
         else
-            dog
+            self.new_from_db(dog[0])
         end
     end
 
@@ -81,8 +78,9 @@ class Dog
         SELECT * FROM dogs
         WHERE name = ?
         SQL
+        #binding.pry
         search = DB[:conn].execute(sql, name)
-        self.new_from_db(search)
+        self.new_from_db(search[0])
     end
 
     def update
